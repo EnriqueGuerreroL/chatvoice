@@ -43,6 +43,6 @@ def create(service):
         ],
     },
     }
-
+    
     event = service.events().insert(calendarId='primary', body=event).execute()
     print('Event created: %s' % (event.get('htmlLink')))
