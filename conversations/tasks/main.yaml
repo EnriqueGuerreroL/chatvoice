@@ -1,0 +1,68 @@
+# Conversation example for simple hello and ask a name
+
+settings:
+    name: TASK_BOT
+
+conversations:
+    - 'hello.yaml'
+
+plugins:
+    - quickstart
+    - event_ops
+
+slots:
+    # lo que contiene slots se puede ejecutar mediante loop_slots.
+    # name está dentro de strategies
+    - name
+    - ask_task
+
+dbs:
+    main: import_csv data.csv
+
+strategies:
+    ask_task:
+        - say "¿Quieres consultar, registrar o salir?"
+        - input task_response | asign consultar:query registrar:new salir:exit
+        # resuelve según respuesta de usuario con strategies
+        - if task_response == "query" then solve query
+        - if task_response == "new" then solve newtask
+        - if task_response == "exit" then solve exit
+        - say "¡De acuerdo!"
+    name:
+        - say "¿cómo te llamas?"
+        - input name
+        # - remember name
+        - say "Muy bien {}. Continuemos...".format(name)
+    newtask:
+        - add_slot newtask_date
+        - say "¿Qué quieres registrar? (tarea, proyecto, examen...)"
+        - input newtask_sum
+        - say "¿Cuáles son los detalles?"
+        - input newtask_desc
+        - say "Ingresa la fecha de entrega/presentación. Utiliza el formato dd mm aaaa"
+        - event_ops.val_date()
+        - event_ops.create_event(newtask_sum,newtask_desc,newtask_date)
+        - del_slot newtask_date
+        - solve ask_task
+    query:
+        - event_ops.get_next_10()
+        - solve ask_task
+    exit:
+        - say "¡Hasta luego {}!".format(name)
+        - exit
+
+script:
+# solve determina qué parte de la conversación se activa
+# algunos argumentos de solve es la parte de strategies
+    - quickstart.main()
+    - solve hello # de conversations -> hello.yaml
+    - solve name
+    - solve ask_task
+    - say greeting # no sé de dónde viene, no es texto
+    - loop_slots # viene de conversation.py, Itera sobre slots, definido más arriba.
+    # - say "¿como estás hoy {}?".format(name)
+    # - input status | asign bien:good mal:bad # resuelve según respuesta de usuario con strategies
+    
+    - say "Hay algunas cosas que sé..."
+    - say "hecho {} {}".format(*db['main'][0]) # supongo que tiene que ver con dbs -> data.csv pero aquí se maneja db, no dbs
+    - say "adios {}".format(name)
