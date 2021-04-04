@@ -7,14 +7,15 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import calendar_ops, event_ops
 
+import cfg
+
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-
 def main():
     """Shows basic usage of the Google Calendar API.
-    Prints the start and name of the next 10 events on the user's calendar.
     """
+    
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -28,31 +29,23 @@ def main():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+                'credentials.json', SCOPES) #/home/enrique/github/chatvoice/conversations/tasks/plugins/
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
 
-    service = build('calendar', 'v3', credentials=creds)
-    
-    return service
+    cfg.service = build('calendar', 'v3', credentials=creds)
+    return 'say "Autenticando..."'
+    # return f"set_slot service {algo}"
 
 
-    # tecla = 1010
-    # while tecla != 0:
-    #     tecla = int(input("ingresa tecla: "))
-    #     if (tecla == 1): # escribir nuevo evento
-    #         print(tecla)
-    #     if tecla == 2: # traer metadatos de calendario
-    #         # calendar = service.calendars().get(calendarId='primary').execute()
-
-    #         # print(calendar['summary'])
-    #         calendar_ops.get_meta()
-
+def fun_aux():
+    cfg.aux = ":O"
+    return f'say "DESDE QUICKSTART {cfg.aux}"'
 
 if __name__ == '__main__':
-    service = main()
+    main()
     # calendar_ops.get_meta(service)
     # event_ops.create(service)
-    event_ops.get_next_10(service)
+    # event_ops.get_next_10(service)
