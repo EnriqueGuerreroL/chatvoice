@@ -12,9 +12,6 @@ plugins:
     - quickstart
     - event_ops
 
-dbs:
-    main: import_csv data.csv
-
 strategies:
     ask_task:
         # estrategia que se estará ejecutando en loop
