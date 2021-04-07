@@ -1,51 +1,42 @@
 from __future__ import print_function
-import datetime
 import pickle
 import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-import calendar_ops, event_ops
+import event_ops, cfg
 
-import cfg
 
-# If modifying these scopes, delete the file token.pickle.
+# Si se modifica SCOPES, eliminar el archivo token.pickle
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 def main():
-    """Shows basic usage of the Google Calendar API.
+    """
+    Login en Google
     """
     
     creds = None
-    # The file token.pickle stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
+    # token.pickle almacena los access y refresh tokens del usuario, se crea
+    # automáticamente cuando el flujo de autorización se completa por primera vez.
     if os.path.exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
-    # If there are no (valid) credentials available, let the user log in.
+    # Si no hay credenciales válidas disponibles, el usuario debe iniciar sesión.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES) #/home/enrique/github/chatvoice/conversations/tasks/plugins/
+                'credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
+        # Guarda las credenciales para próximas ejecuciones
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
-
+    # A través del objeto service se tiene acceso a los recursos que
+    # se exponen con la API
     cfg.service = build('calendar', 'v3', credentials=creds)
     return 'say "Autenticando..."'
-    # return f"set_slot service {algo}"
 
-
-def fun_aux():
-    cfg.aux = ":O"
-    return f'say "DESDE QUICKSTART {cfg.aux}"'
 
 if __name__ == '__main__':
     main()
-    # calendar_ops.get_meta(service)
-    # event_ops.create(service)
-    # event_ops.get_next_10(service)

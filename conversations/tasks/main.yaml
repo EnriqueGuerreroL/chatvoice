@@ -1,68 +1,61 @@
-# Conversation example for simple hello and ask a name
+# Conversación - registro y consulta de tareas (tasks)
 
 settings:
+    # nombre que aparecerá en consola cuando el bot imprima su parte
     name: TASK_BOT
 
 conversations:
     - 'hello.yaml'
 
 plugins:
+    # quickstart.py y event_ops.py para ejecutar instrucciones de python
     - quickstart
     - event_ops
-
-slots:
-    # lo que contiene slots se puede ejecutar mediante loop_slots.
-    # name está dentro de strategies
-    - name
-    - ask_task
 
 dbs:
     main: import_csv data.csv
 
 strategies:
     ask_task:
+        # estrategia que se estará ejecutando en loop
         - say "¿Quieres consultar, registrar o salir?"
         - input task_response | asign consultar:query registrar:new salir:exit
-        # resuelve según respuesta de usuario con strategies
+        # resuelve con una estrategia según respuesta de usuario.
+        # si la respuesta no es consultar, registrar, o salir, el programa termina.
         - if task_response == "query" then solve query
         - if task_response == "new" then solve newtask
         - if task_response == "exit" then solve exit
         - say "¡De acuerdo!"
     name:
+        # estrategia para obtener el nombre del usuario
         - say "¿cómo te llamas?"
         - input name
         # - remember name
         - say "Muy bien {}. Continuemos...".format(name)
     newtask:
+        # estrategia para registrar nueva tarea (task)
         - add_slot newtask_date
-        - say "¿Qué quieres registrar? (tarea, proyecto, examen...)"
+        - say "¿Qué quieres registrar? (tarea, proyecto, examen, ...)"
         - input newtask_sum
         - say "¿Cuáles son los detalles?"
         - input newtask_desc
-        - say "Ingresa la fecha de entrega/presentación. Utiliza el formato dd mm aaaa"
+        - say "Ingresa la fecha de entrega/presentación."
         - event_ops.val_date()
         - event_ops.create_event(newtask_sum,newtask_desc,newtask_date)
         - del_slot newtask_date
         - solve ask_task
     query:
+        # estrategia para hacer la consulta de las 10 siguientes tareas
         - event_ops.get_next_10()
         - solve ask_task
     exit:
+        # estrategia para salir
         - say "¡Hasta luego {}!".format(name)
         - exit
 
 script:
-# solve determina qué parte de la conversación se activa
-# algunos argumentos de solve es la parte de strategies
+    # se inicia sesión en la cuenta de Google del usuario
     - quickstart.main()
     - solve hello # de conversations -> hello.yaml
-    - solve name
-    - solve ask_task
-    - say greeting # no sé de dónde viene, no es texto
-    - loop_slots # viene de conversation.py, Itera sobre slots, definido más arriba.
-    # - say "¿como estás hoy {}?".format(name)
-    # - input status | asign bien:good mal:bad # resuelve según respuesta de usuario con strategies
-    
-    - say "Hay algunas cosas que sé..."
-    - say "hecho {} {}".format(*db['main'][0]) # supongo que tiene que ver con dbs -> data.csv pero aquí se maneja db, no dbs
-    - say "adios {}".format(name)
+    - solve name # strategies -> name
+    - solve ask_task # strategies -> ask_task
